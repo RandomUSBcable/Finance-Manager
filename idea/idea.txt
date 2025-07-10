@@ -1,0 +1,317 @@
+expense tracker 
+Login
+	Sign up
+		Sign up with google (Oauth)
+	
+	Sign in
+		with google
+
+Introduction (upon first sign in)
+	
+	
+Home screen
+	Nav Pane
+		Join
+			Single user / Join Group / Create group
+		settings
+			light/dark mode
+			
+	Dashboard
+		total spend
+		
+	Enter bills
+
+	
+Functionality
+	Create account
+		Oauth (sign in with google)
+	Enter details
+		Username
+		First Name
+		Last Name
+		Birthday (calendar)
+		Would like to start as a single-user/group/create-group?
+		Create extra categories? (else you can create categories later)
+
+Edit account details
+	Change username
+	First Name
+	Last Name
+
+Delete account
+	send email to the user, asking for confirmation
+
+after account creation
+    
+
+Dashboard
+	Spending over time
+		sort/filter by category, time
+		search by name 
+	predictions
+Bills
+	Enter bill
+	Edit bill
+	Delete bill
+
+
+
+backend
+	Prisma postgress
+		User table
+			Unique id
+			username
+			firstName
+			lastName
+			age
+			Email
+			Groups
+			settings
+	
+		Bills table
+			Title
+			id
+			amount
+			date, time
+			submitted by
+			groupId
+			users[]
+		
+		Groups table
+			GroupID
+			link
+			admin
+			Permissions
+
+
+
+prompts:
+You are an expert Software architect, who specializes in building stable, secure and professional full stack applications with ML in Flutter, Node,js, and Python
+Can you please help me with my project?
+
+idea: a financial tracker application built to replace old tech like excel, with modern features and greater ease of use. This app allows the user to manage both their own finances as well as fill in info for official spendings. When in single user mode, the app provides a dashboard to view past data as well as the prediction on a graph, with sort, filter and search features; bill/expense entry area where the user can enter/edit/delete bills, tag, sort them by category etc. The same user has an option to also join a group, where one person the admin can monitor the expenses of the entire group, with the dashboard and stuff, while the other users only get to create/view/delete their own bills.
+Using all this data, the ML backend has to predict the future expense per category or whatever filter is chosen
+Project title: AI powered financial tracker and prediction application
+scope: full stack(flutter for cross platform Frontend development, node.js for backend, python for ML) , cross platform (mobile, web, pc)
+core features: signup/login, enter bills, create/enter group, group admin can manage finances of a group 
+				
+		
+
+JSON
+{
+  "projectTitle": "AI Powered Financial Tracker and Prediction Application",
+  "components": {
+    "flutterClient": {
+      "description": "Cross‑platform UI layer built in Flutter, running on iOS, Android, Web and Desktop.",
+      "responsibilities": [
+        "Render all screens: authentication, dashboards, expense entry, group management, predictions",
+        "Local persistence for offline usage",
+        "Receive and display real‑time updates for group events",
+        "Securely store and refresh authentication tokens"
+      ],
+      "keyPackagesAndPatterns": {
+        "stateManagement": ["flutter_bloc", "provider", "freezed"],
+        "networking": ["dio (HTTP + interceptors)", "socket_io_client or web_socket_channel (WebSockets)"],
+        "localStorage": ["sqflite or hive", "flutter_secure_storage"],
+        "dependencyInjection": ["get_it or injectable"],
+        "formValidation": ["flutter_form_builder", "custom TextFormField validators"],
+        "charts": ["charts_flutter", "syncfusion_flutter_charts"]
+      },
+      "interactionFlow": [
+        {
+          "event": "App Startup",
+          "steps": [
+            "Read JWT & user profile from secure storage",
+            "If offline, load synced expenses & predictions from local DB",
+            "Show splash or navigate to appropriate screen"
+          ]
+        },
+        {
+          "event": "User Adds Expense",
+          "steps": [
+            "User fills form → local validation",
+            "Write expense to local DB as ‘pending sync’",
+            "Dispatch CREATE_EXPENSE event to Bloc",
+            "Bloc calls API via dio",
+            "On success, mark record ‘synced’"
+          ]
+        },
+        {
+          "event": "Group Real‑Time Update",
+          "steps": [
+            "Open WebSocket to wss://api.example.com/groups/{groupId}",
+            "Listen for events (expense_created, prediction_ready)",
+            "Update Bloc state and UI"
+          ]
+        }
+      ]
+    },
+    "apiLayer": {
+      "description": "Node.js + TypeScript service exposing REST/GraphQL endpoints, enforcing security and orchestrating business logic.",
+      "responsibilities": [
+        "Authenticate & authorize requests via JWT/OAuth2",
+        "Validate inputs and enforce rate‑limits",
+        "CRUD operations for users, groups, expenses, budgets, predictions",
+        "Publish domain events to Message Bus",
+        "Proxy to ML microservice for on‑demand predictions"
+      ],
+      "keyModulesAndPatterns": {
+        "framework": ["Express + express-async-errors or Koa", "*NestJS for structured architecture"],
+        "orm": ["TypeORM or Prisma with migrations"],
+        "validation": ["class-validator + DTOs or Joi"],
+        "auth": ["jsonwebtoken", "passport strategies"],
+        "security": ["helmet", "cors", "express-rate-limit"],
+        "logging": ["winston or pino with request IDs"],
+        "caching": ["ioredis for Redis"],
+        "apiDocs": ["swagger-ui-express", "Apollo Playground"]
+      },
+      "interactionFlow": [
+        {
+          "event": "POST /expenses",
+          "steps": [
+            "Auth middleware verifies JWT",
+            "Validation middleware checks payload",
+            "Service layer writes to Postgres via ORM",
+            "Publish { type: 'expense.created' } to Message Bus",
+            "Invalidate Redis cache for dashboard keys",
+            "Optionally call ML /predict endpoint for immediate update"
+          ]
+        }
+      ]
+    },
+    "authenticationService": {
+      "description": "Dedicated OAuth2/JWT service handling login, social auth, token issuance and 2FA.",
+      "responsibilities": [
+        "Support email/password and social logins (Google, Facebook)",
+        "Issue & refresh JWTs securely",
+        "Enforce optional 2FA (TOTP or SMS OTP)",
+        "Store refresh tokens with TTL"
+      ],
+      "keyModules": {
+        "oauth2": ["passport-google-oauth20", "passport-facebook"],
+        "jwt": ["jsonwebtoken", "Redis for refresh token store"],
+        "twoFA": ["speakeasy for TOTP", "nodemailer or SMS gateway"],
+        "userStore": ["Postgres users table with 2FA secrets"]
+      },
+      "interactionFlow": [
+        {
+          "event": "User Logs In via Google",
+          "steps": [
+            "Client → /auth/google (Passport redirects)",
+            "Callback verifies or creates user record",
+            "Generate JWT + refresh token",
+            "Return tokens to client"
+          ]
+        },
+        {
+          "event": "Token Refresh",
+          "steps": [
+            "Client → /auth/refresh with refresh token",
+            "Verify token in Redis",
+            "Issue new JWT"
+          ]
+        }
+      ]
+    },
+    "messageBus": {
+      "description": "Asynchronous event backbone using RabbitMQ or Kafka, decoupling services for scalability.",
+      "responsibilities": [
+        "Receive events from API (expense.created, user.joined, etc.)",
+        "Route events to subscribers (ML service, notification worker)",
+        "Guarantee delivery and ordering as configured"
+      ],
+      "technologies": {
+        "rabbitmq": ["amqplib in Node.js", "pika in Python"],
+        "kafka": ["kafkajs in Node.js", "kafka-python in Python"]
+      },
+      "topicsAndEvents": ["expense.created", "expense.updated", "prediction.requested", "user.joined"]
+    },
+    "databaseLayer": {
+      "postgresql": {
+        "description": "Primary relational store with multi‑tenant support via schemas or Row‑Level Security.",
+        "tables": ["users", "groups", "expenses", "budgets", "predictions", "audit_logs"],
+        "features": ["UUID PKs", "timestamp with time zone", "RLS policies"]
+      },
+      "redis": {
+        "description": "In‑memory store for caching, session management and distributed locks.",
+        "useCases": ["dashboard aggregates cache", "refresh token store", "cron job locks"]
+      },
+      "blobStorage": {
+        "description": "Object storage (S3/GCP/Azure) for receipt images and exported reports.",
+        "integration": ["aws-sdk + multer-s3 for Node.js uploads"]
+      }
+    },
+    "mlPredictionService": {
+      "description": "Python microservice providing forecasting and anomaly detection via REST API.",
+      "responsibilities": [
+        "Load historical expense data",
+        "Train and serve forecasting models per user/category",
+        "Expose /predict endpoint",
+        "Listen to expense.created events for async predictions"
+      ],
+      "keyLibraries": {
+        "framework": ["FastAPI + uvicorn"],
+        "data": ["pandas", "numpy"],
+        "models": ["scikit-learn (RandomForestRegressor, LinearRegression)", "statsmodels (ARIMA)", "prophet"],
+        "serialization": ["joblib", "pickle"],
+        "validation": ["pydantic"]
+      },
+      "interactionFlow": [
+        {
+          "event": "expense.created",
+          "steps": [
+            "Consume event from Message Bus",
+            "Fetch user’s historical data from Postgres",
+            "Preprocess and call model.predict()",
+            "Write prediction to Postgres and cache in Redis"
+          ]
+        },
+        {
+          "event": "GET /predict",
+          "steps": [
+            "Receive query params (userId, filters)",
+            "Load appropriate model artifact",
+            "Compute forecast",
+            "Return JSON { predictedAmount, confidence }"
+          ]
+        }
+      ]
+    },
+    "etlRetrainingPipeline": {
+      "description": "Automated workflows for data ingestion, cleaning, aggregation and model retraining.",
+      "responsibilities": [
+        "Import bank feeds or user‑uploaded CSVs",
+        "Clean and normalize transaction data",
+        "Aggregate per‑category summaries",
+        "Trigger model retraining when thresholds met"
+      ],
+      "toolsAndPatterns": {
+        "orchestration": ["Apache Airflow DAGs", "Celery beat tasks"],
+        "operators": ["PythonOperator (pandas + sqlalchemy)", "DockerOperator"],
+        "versioning": ["Store new model artifacts in S3", "Record metadata in ml_models table"]
+      },
+      "dagsOrTasks": [
+        {
+          "name": "daily_transaction_import",
+          "steps": ["extract_transactions", "transform_clean", "load_db"],
+          "next": "trigger_retrain_if_needed"
+        },
+        {
+          "name": "model_retraining",
+          "trigger": "time or volume threshold",
+          "steps": ["fetch_all_expenses", "retrain_models", "save_artifacts", "update_model_registry"]
+        }
+      ]
+    },
+    "crossComponentDataFlow": {
+      "flowSteps": [
+        "1. Flutter client emits POST /expenses → API writes to Postgres → publishes expense.created",
+        "2. ML service consumes expense.created → computes prediction → writes back to DB & cache",
+        "3. Flutter listens via WebSocket or polls → displays updated prediction graph",
+        "4. ETL jobs backfill data → API persists bulk data → retraining pipeline runs automatically",
+        "5. All services authenticate and authorize using centralized Auth service"
+      ],
+      "notes": "All HTTP services verify JWT; events carry correlation IDs for distributed tracing."
+    }
+  }
+}
